@@ -4,6 +4,8 @@ import java.util.ArrayList;
 public class Test {
 	public static void main(String[] args) throws IOException
 	{
+		for(String a:args)
+		System.out.println(a);
 		ArrayList<String> opt = new ArrayList<String>();
 		ArrayList<Integer> optNum = new ArrayList<Integer>();
 		ArrayList<String> fileName = new ArrayList<String>();
@@ -15,18 +17,20 @@ public class Test {
 		FileWriter fw =  new FileWriter(output);
 		fw.write("");
 		fw.close();
-		
 		for(int i=0;i<args.length;++i){
 			if(args[i].charAt(0)=='-'){
 				opt.add(args[i]);
 				optNum.add(i);
 			} 
 			else{
+				
 				fileName.add(args[i]);
 				fileNum.add(i);					
 				}
 			}
 		int optnum;
+
+		//-o选项：将结果输出到指定文件
 		if((optnum=opt.indexOf("-o"))!=-1){
 			int i = optNum.get(optnum);//获得选项在args中的位置
 			while(true){				
@@ -36,32 +40,114 @@ public class Test {
 			}
 			outputPath=args[i];
 		}
-		if((optnum=opt.indexOf("-c"))!=-1){
+		
+		//-s选项：递归处理目录下符合条件的文件
+		if((optnum=opt.indexOf("-s"))!=-1){
 			int i = optNum.get(optnum);//获得选项在args中的位置
 			while(true){				
 				if(fileName.contains(args[++i])){
 					break;
 				}
+			}		
+			File file = new File("");
+			//ArrayList<File> filelist=getfile(file.getAbsolutePath(),args[i]);
+			ArrayList<String> filelist=new ArrayList<String>();
+			for(int j = i;j<args.length;++j)
+			{
+				if(args[j].charAt(0)!='-'){
+					filelist.add(args[j]);
+				}
+				else break;
 			}
-			readFile(args[i],'c',outputPath);
+			//-c选项：返回文件 file.c 的字符数
+			if((optnum=opt.indexOf("-c"))!=-1){
+				for(String f:filelist)
+				readFile(f,'c',outputPath);
+			}
+			//-w选项：返回文件 file.c 的单词总数
+			if((optnum=opt.indexOf("-w"))!=-1){
+				for(String f:filelist)
+				readFile(f,'w',outputPath);
+			}
+			//-l选项：返回文件 file.c 的总行数
+			if((optnum=opt.indexOf("-l"))!=-1){
+				for(String f:filelist)
+				readFile(f,'l',outputPath);
+			}
+
 		}
-		if((optnum=opt.indexOf("-w"))!=-1){
-			int i = optNum.get(optnum);//获得选项在args中的位置
-			while(true){				
-				if(fileName.contains(args[++i])){
-					break;
+		
+		//非递归处理时
+		if((optnum=opt.indexOf("-s"))==-1){			
+			//-c选项：返回文件 file.c 的字符数
+			if((optnum=opt.indexOf("-c"))!=-1){
+				int i = optNum.get(optnum);//获得选项在args中的位置
+				while(true){				
+					if(fileName.contains(args[++i])){
+						break;
+					}
 				}
+				readFile(args[i],'c',outputPath);
 			}
-			readFile(args[i],'w',outputPath);
-		}
-		if((optnum=opt.indexOf("-l"))!=-1){
-			int i = optNum.get(optnum);//获得选项在args中的位置
-			while(true){				
-				if(fileName.contains(args[++i])){
-					break;
+			//-w选项：返回文件 file.c 的单词总数
+			if((optnum=opt.indexOf("-w"))!=-1){
+				int i = optNum.get(optnum);//获得选项在args中的位置
+				while(true){				
+					if(fileName.contains(args[++i])){
+						break;
+					}
 				}
+				//停用词表
+				if((optnum=opt.indexOf("-e"))!=-1)
+				{
+					int j =optNum.get(optnum);
+					ArrayList<String> StopList = new ArrayList<String>();
+					File stopfile =new File(args[++j]);
+					File file =new File(args[i]);
+					BufferedReader stopbr = new BufferedReader(new InputStreamReader(new FileInputStream(stopfile)));	
+					BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+					String s1="";
+					while((s1=stopbr.readLine())!=null)//readline()=null代表数据读取完毕
+					  {			
+					   if(s1.length()!=0){
+						   for(String stop:s1.split(" "))
+						   StopList.add(stop);					   
+					   }			  					   
+					  }					
+					stopbr.close();
+					int countword =0;
+					String s ="";
+					while((s=br.readLine())!=null)//readline()=null代表数据读取完毕
+					  {
+					   	
+					   if(s.length()!=0){
+						   for(String s2:s.split(" |,")){
+							   if(StopList.contains(s2)!=true)
+								   countword++;
+						   }
+					   }			  	   
+					  }
+					br.close();
+					FileWriter fw1 = new FileWriter(outputPath, true);  
+			        BufferedWriter bw = new BufferedWriter(fw1);
+			        String w_out = new String(file.getName()+", 单词数: "+countword);
+			        bw.write(w_out);
+	            	bw.newLine();
+	            	bw.close();
+	            	fw1.close();
+				}
+				else readFile(args[i],'w',outputPath);
 			}
-			readFile(args[i],'l',outputPath);
+			//-l选项：返回文件 file.c 的总行数
+			if((optnum=opt.indexOf("-l"))!=-1){
+				int i = optNum.get(optnum);//获得选项在args中的位置
+				while(true){				
+					if(fileName.contains(args[++i])){
+						break;
+					}
+				}
+				readFile(args[i],'l',outputPath);
+			}
 		}
 	}
 	public static void readFile(String fileName,int res,String Path){ 
@@ -88,9 +174,9 @@ public class Test {
 			
 			FileWriter fw = new FileWriter(Path, true);  
 	        BufferedWriter bw = new BufferedWriter(fw);  	
-			String c_out = new String(fileName+", 字符数: "+countChar);
-			String w_out = new String(fileName+", 单词数: "+countword);
-			String l_out = new String(fileName+", 行数: "+countline);
+			String c_out = new String(file.getName()+", 字符数: "+countChar);
+			String w_out = new String(file.getName()+", 单词数: "+countword);
+			String l_out = new String(file.getName()+", 行数: "+countline);
 			
 			switch(res) {  
             case 'c': 
@@ -115,4 +201,87 @@ public class Test {
 		}
 		
 	}
+	public static ArrayList<File> getfile(String fileDir,String filename) {  
+	        ArrayList<File> fileList = new ArrayList<File>();  
+	        File file = new File(fileDir);  
+	        File[] files = file.listFiles();// 获取目录下的所有文件或文件夹  
+	        if (files == null) {// 如果目录为空，直接退出  
+	            System.out.println(file.getAbsolutePath());  
+	        }  
+	        else{
+	        // 遍历，目录下的所有文件  
+	        for (File f : files) {  
+	            if (f.isFile()&&match(filename,f.getName())) {  
+	                fileList.add(f); 
+	                System.out.println(filename+match(filename,"file.c"));
+	            } else if (f.isDirectory()) {  	                 
+	                getfile(f.getAbsolutePath(),filename);  
+	            }  
+	        } 
+	        }
+	        return fileList;
+	    }  
+	//字符串含通配符* ?匹配
+	public static boolean match(String pattern, String str) {
+	        if (pattern == null || str == null)
+	            return false;
+	 
+	        boolean result = false;
+	        char c; // 当前要匹配的字符串
+	        boolean beforeStar = false; // 是否遇到通配符*
+	        int back_i = 0;// 回溯,当遇到通配符时,匹配不成功则回溯
+	        int back_j = 0;
+	        int i, j;
+	        for (i = 0, j = 0; i < str.length();) {
+	            if (pattern.length() <= j) {
+	                if (back_i != 0) {// 有通配符,但是匹配未成功,回溯
+	                    beforeStar = true;
+	                    i = back_i;
+	                    j = back_j;
+	                    back_i = 0;
+	                    back_j = 0;
+	                    continue;
+	                }
+	                break;
+	            }
+	 
+	            if ((c = pattern.charAt(j)) == '*') {
+	                if (j == pattern.length() - 1) {// 通配符已经在末尾,返回true
+	                    result = true;
+	                    break;
+	                }
+	                beforeStar = true;
+	                j++;
+	                continue;
+	            }
+	 
+	            if (beforeStar) {
+	                if (str.charAt(i) == c) {
+	                    beforeStar = false;
+	                    back_i = i + 1;
+	                    back_j = j;
+	                    j++;
+	                }
+	            } else {
+	                if (c != '?' && c != str.charAt(i)) {
+	                    result = false;
+	                    if (back_i != 0) {// 有通配符,但是匹配未成功,回溯
+	                        beforeStar = true;
+	                        i = back_i;
+	                        j = back_j;
+	                        back_i = 0;
+	                        back_j = 0;
+	                        continue;
+	                    }
+	                    break;
+	                }
+	                j++;
+	            }
+	            i++;
+	        }
+	 
+	        if (i == str.length() && j == pattern.length())// 全部遍历完毕
+	            result = true;
+	        return result;
+	    }
 }
