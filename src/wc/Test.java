@@ -49,7 +49,7 @@ public class Test {
 					break;
 				}
 			}		
-			File file = new File("");
+			
 			//ArrayList<File> filelist=getfile(file.getAbsolutePath(),args[i]);
 			ArrayList<String> filelist=new ArrayList<String>();
 			for(int j = i;j<args.length;++j)
@@ -66,15 +66,60 @@ public class Test {
 			}
 			//-w选项：返回文件 file.c 的单词总数
 			if((optnum=opt.indexOf("-w"))!=-1){
-				for(String f:filelist)
-				readFile(f,'w',outputPath);
+				for(String f:filelist){
+					//停用词表
+					if((optnum=opt.indexOf("-e"))!=-1)
+					{
+						int j =optNum.get(optnum);
+						ArrayList<String> StopList = new ArrayList<String>();
+						File stopfile =new File(args[++j]);
+						File file =new File(f);
+						BufferedReader stopbr = new BufferedReader(new InputStreamReader(new FileInputStream(stopfile)));	
+						BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(f)));
+						String s1="";
+						while((s1=stopbr.readLine())!=null)//readline()=null代表数据读取完毕
+						  {			
+						   if(s1.length()!=0){
+							   for(String stop:s1.split(" "))
+							   StopList.add(stop);					   
+						   }			  					   
+						  }					
+						stopbr.close();
+						int countword =0;
+						String s ="";
+						while((s=br.readLine())!=null)//readline()=null代表数据读取完毕
+						  {
+						   	
+						   if(s.length()!=0){
+							   for(String s2:s.split(" |,")){
+								   if(StopList.contains(s2)!=true)
+									   countword++;
+							   }
+						   }			  	   
+						  }
+						br.close();
+						FileWriter fw1 = new FileWriter(outputPath, true);  
+				        BufferedWriter bw = new BufferedWriter(fw1);
+				        String w_out = new String(file.getName()+", 单词数: "+countword);
+				        bw.write(w_out);
+		            	bw.newLine();
+		            	bw.close();
+		            	fw1.close();
+					}
+					else readFile(f,'w',outputPath);
+				}
 			}
+				
 			//-l选项：返回文件 file.c 的总行数
 			if((optnum=opt.indexOf("-l"))!=-1){
 				for(String f:filelist)
 				readFile(f,'l',outputPath);
 			}
-
+			
+			if((optnum=opt.indexOf("-a"))!=-1){
+				for(String f:filelist)
+					countCode(f,outputPath);
+			}
 		}
 		
 		//非递归处理时
@@ -148,7 +193,59 @@ public class Test {
 				}
 				readFile(args[i],'l',outputPath);
 			}
+			//-a选项
+			if((optnum=opt.indexOf("-a"))!=-1){
+				int i = optNum.get(optnum);//获得选项在args中的位置
+				while(true){				
+					if(fileName.contains(args[++i])){
+						break;
+					}
+				}
+				countCode(args[i],outputPath);
+			}
 		}
+	}
+	private static void countCode(String f,String Path) {
+		int commmentLines=0,whiteLines=0,normalLines=0;
+		File file =new File(f);
+		BufferedReader br = null;  
+        boolean comment = false;  
+        try {  
+            br = new BufferedReader(new FileReader(f));  
+            String line = "";  
+            while ((line = br.readLine()) != null) {  
+                line = line.trim();  
+                if (line.matches("//.*")) {  
+                    ++commmentLines;  
+                } else if (line.matches("^/\\*.*\\*/$")) {  
+                    ++commmentLines;  
+                } else if (comment) {  
+                    ++commmentLines;  
+                    if (line.matches(".*\\*/$")) {  
+                        comment = false;  
+                    }  
+                } else if (line.matches("^/\\*.*[^\\*/$]")) {  
+                    ++commmentLines;  
+                    comment = true;  
+                } else if (!comment &&line.matches("[\\s&&[^\\n]]*")) {  
+                    ++whiteLines;  
+                } else {  
+                    ++normalLines;  
+                } 
+            }
+                FileWriter fw = new FileWriter(Path, true);  
+    	        BufferedWriter bw = new BufferedWriter(fw);  	
+    			String c_out = new String(file.getName()+", 代码行/空行/注释行: "+normalLines+"/"+whiteLines+"/"+commmentLines);
+    			bw.write(c_out);
+            	bw.newLine();
+            	bw.close();
+            	fw.close();
+              
+        } catch (FileNotFoundException e) {  
+            e.printStackTrace();  
+        } catch (IOException e) {  
+            e.printStackTrace();  
+        }  
 	}
 	public static void readFile(String fileName,int res,String Path){ 
 		//按字符读文件
@@ -164,11 +261,11 @@ public class Test {
 			  {
 			   
 //			   System.out.println(s);
-			   countChar += s.length();//字符个数就是字符长度
+			   countChar += s.length()+1;//字符个数就是字符长度
 			   if(s.length()!=0){
 			   countword += s.split(" |,").length;//split() 方法用于把一个字符串分割成字符串数组,字符串数组的长度，就是单词个数
 			   }			  
-			   countline++;//因为是按行读取，所以每次增加一即可计算出行的数目
+			   if(s.length()!=0)countline++;//因为是按行读取，所以每次增加一即可计算出行的数目
 			  }
 			br.close();
 			
