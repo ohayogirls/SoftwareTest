@@ -4,19 +4,15 @@ import java.util.ArrayList;
 public class Test {
 	public static void main(String[] args) throws IOException
 	{
-//		for(String a:args)
-//		System.out.println(a);
+		for(String a:args)
+		System.out.println(a);
 		ArrayList<String> opt = new ArrayList<String>();
 		ArrayList<Integer> optNum = new ArrayList<Integer>();
 		ArrayList<String> fileName = new ArrayList<String>();
-		ArrayList<Integer> fileNum = new ArrayList<Integer>();
-		
+		ArrayList<Integer> fileNum = new ArrayList<Integer>();		
 		String outputPath = "result.txt";
-		File output = new File(outputPath);
-		output.createNewFile();
-//		FileWriter fw =  new FileWriter(output);
-//		fw.write("");
-//		fw.close();
+		int optnum;
+		
 		for(int i=0;i<args.length;++i){
 			if(args[i].charAt(0)=='-'){
 				opt.add(args[i]);
@@ -28,8 +24,14 @@ public class Test {
 				fileNum.add(i);					
 				}
 			}
-		int optnum;
-
+		
+		if((optnum=opt.indexOf("-o"))==-1){
+			File output = new File(outputPath);
+			output.createNewFile();
+			FileWriter fw =  new FileWriter(output);
+			fw.write("");
+			fw.close();
+		}
 		//-o选项：将结果输出到指定文件
 		if((optnum=opt.indexOf("-o"))!=-1){
 			int i = optNum.get(optnum);//获得选项在args中的位置
@@ -39,8 +41,11 @@ public class Test {
 				}
 			}
 			outputPath=args[i];
-			File output1 = new File(outputPath);
-			output1.createNewFile();
+			File output = new File(outputPath);
+			output.createNewFile();
+			FileWriter fw =  new FileWriter(output);
+			fw.write("");
+			fw.close();
 		}
 		
 		//-s选项：递归处理目录下符合条件的文件
@@ -51,24 +56,18 @@ public class Test {
 					break;
 				}
 			}		
-			
-			//ArrayList<File> filelist=getfile(file.getAbsolutePath(),args[i]);
-			ArrayList<String> filelist=new ArrayList<String>();
-			for(int j = i;j<args.length;++j)
+			File file1 = new File("");
+			ArrayList<String> filelist=getfile(file1.getAbsolutePath(),args[i]);
+			for(String f:filelist)
 			{
-				if(args[j].charAt(0)!='-'){
-					filelist.add(args[j]);
-				}
-				else break;
-			}
-			//-c选项：返回文件 file.c 的字符数
 			if((optnum=opt.indexOf("-c"))!=-1){
-				for(String f:filelist)
+//				for(String f:filelist)
 				readFile(f,'c',outputPath);
 			}
 			//-w选项：返回文件 file.c 的单词总数
 			if((optnum=opt.indexOf("-w"))!=-1){
-				for(String f:filelist){
+//				for(String f:filelist)
+					{
 					//停用词表
 					if((optnum=opt.indexOf("-e"))!=-1)
 					{
@@ -114,14 +113,15 @@ public class Test {
 				
 			//-l选项：返回文件 file.c 的总行数
 			if((optnum=opt.indexOf("-l"))!=-1){
-				for(String f:filelist)
+//				for(String f:filelist)
 				readFile(f,'l',outputPath);
 			}
 			
 			if((optnum=opt.indexOf("-a"))!=-1){
-				for(String f:filelist)
+//				for(String f:filelist)
 					countCode(f,outputPath);
 			}
+		}
 		}
 		
 		//非递归处理时
@@ -302,8 +302,8 @@ public class Test {
 		}
 		
 	}
-	public static ArrayList<File> getfile(String fileDir,String filename) {  
-	        ArrayList<File> fileList = new ArrayList<File>();  
+	public static ArrayList<String> getfile(String fileDir,String filename) {  
+	        ArrayList<String> fileList = new ArrayList<String>();  
 	        File file = new File(fileDir);  
 	        File[] files = file.listFiles();// 获取目录下的所有文件或文件夹  
 	        if (files == null) {// 如果目录为空，直接退出  
@@ -313,8 +313,8 @@ public class Test {
 	        // 遍历，目录下的所有文件  
 	        for (File f : files) {  
 	            if (f.isFile()&&match(filename,f.getName())) {  
-	                fileList.add(f); 
-	                System.out.println(filename+match(filename,"file.c"));
+	                fileList.add(f.getName()); 
+//	                System.out.println(filename+match(filename,"file.c"));
 	            } else if (f.isDirectory()) {  	                 
 	                getfile(f.getAbsolutePath(),filename);  
 	            }  
