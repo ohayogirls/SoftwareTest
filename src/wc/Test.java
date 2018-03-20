@@ -4,8 +4,8 @@ import java.util.ArrayList;
 public class Test {
 	public static void main(String[] args) throws IOException
 	{
-		for(String a:args)
-		System.out.println(a);
+//		for(String a:args)
+//		System.out.println(a);
 		ArrayList<String> opt = new ArrayList<String>();
 		ArrayList<Integer> optNum = new ArrayList<Integer>();
 		ArrayList<String> fileName = new ArrayList<String>();
@@ -14,9 +14,9 @@ public class Test {
 		String outputPath = "result.txt";
 		File output = new File(outputPath);
 		output.createNewFile();
-		FileWriter fw =  new FileWriter(output);
-		fw.write("");
-		fw.close();
+//		FileWriter fw =  new FileWriter(output);
+//		fw.write("");
+//		fw.close();
 		for(int i=0;i<args.length;++i){
 			if(args[i].charAt(0)=='-'){
 				opt.add(args[i]);
@@ -39,6 +39,8 @@ public class Test {
 				}
 			}
 			outputPath=args[i];
+			File output1 = new File(outputPath);
+			output1.createNewFile();
 		}
 		
 		//-s选项：递归处理目录下符合条件的文件
@@ -219,6 +221,8 @@ public class Test {
                     ++commmentLines;  
                 } else if (line.matches("^/\\*.*\\*/$")) {  
                     ++commmentLines;  
+                } else if (line.matches(".//.*")){
+                	++commmentLines;
                 } else if (comment) {  
                     ++commmentLines;  
                     if (line.matches(".*\\*/$")) {  
@@ -227,9 +231,9 @@ public class Test {
                 } else if (line.matches("^/\\*.*[^\\*/$]")) {  
                     ++commmentLines;  
                     comment = true;  
-                } else if (!comment &&line.matches("[\\s&&[^\\n]]*")) {  
+                } else if (!comment &&(line.matches("[\\s&&[^\\n]]*")||line.matches("[{}]"))) {  
                     ++whiteLines;  
-                } else {  
+                } else if(line.length()>1){  
                     ++normalLines;  
                 } 
             }
@@ -260,12 +264,12 @@ public class Test {
 			while((s=br.readLine())!=null)//readline()=null代表数据读取完毕
 			  {
 			   
-//			   System.out.println(s);
-			   countChar += s.length()+1;//字符个数就是字符长度
+//			   System.out.println(s);			   
 			   if(s.length()!=0){
 			   countword += s.split(" |,").length;//split() 方法用于把一个字符串分割成字符串数组,字符串数组的长度，就是单词个数
 			   }			  
 			   if(s.length()!=0)countline++;//因为是按行读取，所以每次增加一即可计算出行的数目
+			   countChar += s.length()+countline-1;//字符个数就是字符长度
 			  }
 			br.close();
 			
